@@ -139,7 +139,7 @@ public class RSACrypto {
 
 		try {
 			kgen = KeyGenerator.getInstance("AES");
-			kgen.init(256);
+			kgen.init(keysize);
 			SecretKey blockkey = kgen.generateKey();
 			return blockkey;
 		} catch (NoSuchAlgorithmException e) {
