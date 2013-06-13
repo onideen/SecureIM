@@ -1,0 +1,75 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".ChatScreen"
+        >
+
+    <RelativeLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="bottom"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:id="@+id/relativeLayout">
+
+        <EditText
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/sendMessage"
+                android:layout_toLeftOf="@+id/sendButton"
+                android:padding="@dimen/activity_horizontal_margin"
+                android:hint="@string/message"
+                android:inputType="text|textMultiLine|textAutoComplete|textAutoCorrect"/>
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Send"
+                android:id="@+id/sendButton"
+
+                android:layout_alignParentRight="true"
+                android:layout_alignBottom="@+id/sendMessage"
+                android:padding="@dimen/activity_horizontal_margin"/>
+    </RelativeLayout>
+
+    <ScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/scrollView"
+            android:padding="@dimen/activity_horizontal_margin"
+            android:layout_above="@+id/relativeLayout"
+            android:layout_alignParentEnd="false"
+            android:layout_below="@+id/relativeLayout2">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:id="@+id/chatField"
+            android:textSize="@dimen/chat_message_size"
+                />
+    </ScrollView>
+
+    <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true"
+            android:background="@color/deep_red"
+            android:id="@+id/relativeLayout2">
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/contact_name"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:text="SecureIM"
+                android:textColor="@color/white"
+                android:textSize="@dimen/title_size"/>
+    </RelativeLayout>
+
+</RelativeLayout>

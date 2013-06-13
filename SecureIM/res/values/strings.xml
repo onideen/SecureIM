@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name" >SecureIM
+    </string>
+    <string name="title" >Secure IM</string>
+    <string name="sub_title">Chat the secure way</string>
+    <string name="action_settings" >Settings
+    </string>
+    <string name="hello_world" >Hello world!
+    </string>
+    <string name="send_button">Send</string>
+    <string name="connecting">Connecting...</string>
+    <string name="connecting_user">Opening conversation..</string>
+    <string name="login">Login</string>
+    <string name="username">Username</string>
+    <string name="username_of_others">Username of contact</string><string name="message">Message</string>
+    <string name="checking_keys">Checking and generating keypair</string>
+
+
+</resources>
