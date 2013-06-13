@@ -87,9 +87,12 @@ public class ConnectionHandlerObjects extends Thread {
 			SecretKey symKey = RSACrypto.generateAESkey(128);
 			byte[] encKey = RSACrypto.encryptWithRSA(symKey.getEncoded(), contactKey);
 			byte[] encMsg = RSACrypto.encryptMessage(message, symKey);
-			byte[] encSnd = RSACrypto.encryptWithRSA(me.getBytes(), contactKey);
-			byte[] encRcv = RSACrypto.encryptWithRSA(contact,contactKey);
+			//byte[] encSnd = RSACrypto.encryptWithRSA(me.getBytes(), contactKey);
+			//byte[] encRcv = RSACrypto.encryptWithRSA(contact,contactKey);
+			byte[] encSnd = "server".getBytes();
+			byte[] encRcv = "arne".getBytes();
 			Message srvMsg = new Message(encSnd, encRcv, encMsg, signature, code);
+			srvMsg.setMessageKey(encKey);
 			return srvMsg;
 		} catch (UnsupportedEncodingException e) {
 			System.out.println("Could not convert to UTF-8");
@@ -126,19 +129,25 @@ public class ConnectionHandlerObjects extends Thread {
 					contactKey = response.getPublicKey();
 					KeyReader.savePublicKey(contactKey, RSACrypto.byteToStringConverter(username));
 
-					System.out.println("Public Key saved");
-					/*
-					System.out.println("Key not found, please supply");
-					oout.writeObject(generateServerMessage("Key not found, please supply",StatusCode.KEY_NOT_FOUND));
-					
-					response = (Message)oin.readObject();
-					contactKey = response.getPublicKey();
-
-					*/
+					System.out.println("Public Key saved");	
 				}
 				
-				oout.writeObject(generateServerMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?", StatusCode.AUTH_OK));
+				Message m;
+				if (contactKey.equals(response.getPublicKey())){
+					m = generateEncryptedServerMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?", StatusCode.AUTH_OK);
+				}
+				else {
+					m = generateServerMessage("Mismatched keys", StatusCode.UNAUTHORIZED);
+				}
+				oout.writeObject(m);
 
+				
+				
+				
+				//USer found etc
+				
+				
+				
 				
 			}else{
 				//Unecrypted mode

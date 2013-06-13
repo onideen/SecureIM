@@ -67,31 +67,37 @@ public class MessageHandler extends Thread {
             Log.i(TAG, "Got message" + m );
             
             
-            KeyReader.verify("server", m.getPublicKey(), ctx);
-            
-            
-            if (m.getMessageCode() != 530) {
-                Log.i(TAG, "Couldn't get 530 message from server");
-                return;
+            if (!KeyReader.verify("server", m.getPublicKey(), ctx)){
+            	/* FIX HANDLER TO DO CALLBACK */
+            	
+            	Log.e(TAG, "CANNOT VERIFY SERVER");
             }
-
-            while (socket.isConnected()) {
-                
-                if (waitingToSend){
-                    listening = false;
-                } else {
-                	Log.i(TAG, "Listening..");
-                    listening = true;
-                    try {
-                        m = (Message)in.readObject();
-                        Log.d(TAG, "Message: " + m);
-                        new Thread(new FireNewMessage(m)).start();
-
-                    }catch (SocketTimeoutException se){}
-                    catch (ClassNotFoundException e) {
-                        Log.e(TAG, "ClassNotFound", e);
-                    }
-                }
+            else {
+            	
+	            
+	            if (m.getMessageCode() != 530) {
+	                Log.i(TAG, "Couldn't get 530 message from server");
+	                return;
+	            }
+	
+	            while (socket.isConnected()) {
+	                
+	                if (waitingToSend){
+	                    listening = false;
+	                } else {
+	                	Log.i(TAG, "Listening..");
+	                    listening = true;
+	                    try {
+	                        m = (Message)in.readObject();
+	                        Log.d(TAG, "Message: " + m);
+	                        new Thread(new FireNewMessage(m)).start();
+	
+	                    }catch (SocketTimeoutException se){}
+	                    catch (ClassNotFoundException e) {
+	                        Log.e(TAG, "ClassNotFound", e);
+	                    }
+	                }
+	            }
             }
 
             Log.i(TAG, "Out of the loop");
@@ -99,10 +105,6 @@ public class MessageHandler extends Thread {
             Log.e(TAG, "Lost connection with server", e);
         } catch (ClassNotFoundException e) {
             Log.e(TAG, "ClassNotFound", e);
-//		} catch (InterruptedException e1) {
-//			Log.e(TAG, "InterrupedException", e1);
-//		} catch (ExecutionException e1) {
-//			Log.e(TAG, "ExecutionException", e1);		
 		}
 
     }

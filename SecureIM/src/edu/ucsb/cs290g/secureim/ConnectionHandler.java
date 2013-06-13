@@ -40,8 +40,6 @@ public class ConnectionHandler  {
     private Context ctx;
     private boolean listening = false;
 
-    private PrivateKey myPrivateKey;
-
     MessageHandler messageHandler;
 
     private ConnectionHandler(Context ctx) {
@@ -78,8 +76,7 @@ public class ConnectionHandler  {
     	try {
 			AsyncTask<User, Void, KeyPair> task = new PrepareKeyTask(ctx).execute(me);
 			KeyPair kp = task.get();
-			myPrivateKey = kp.getPrivate();
-			me.setPublicKey(kp.getPublic());
+			me.setKeyPair(kp);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (ExecutionException e) {

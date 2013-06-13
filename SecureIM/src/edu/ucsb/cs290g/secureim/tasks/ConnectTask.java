@@ -80,15 +80,13 @@ public class ConnectTask extends AsyncTask<User, Void, Boolean> implements Messa
         if (message.getMessageCode() == StatusCode.AUTH_OK) {
             authenticated = true;
             mh.removeObserver(this);
+            Log.wtf(TAG, "The decrypted message is: " + message.getDecryptedMessage(user.getPrivateKey()));
         } else if (message.getMessageCode() == StatusCode.UNAUTHORIZED) {
             denied = true;
             mh.removeObserver(this);
         } else if (message.getMessageCode() == StatusCode.KEY_NOT_FOUND) {
         	Log.i(TAG, "Sending Key");
-        	//mh.sendMessage(new Message(user, "server", "TATA"));
-//        	/Log.i(TAG, "Key sent");
-        	//ConnectionHandler.getConnectionHandler(ctx).getPublicKey()
-        }
+         }
 
 
     }
