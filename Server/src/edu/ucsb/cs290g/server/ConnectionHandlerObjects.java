@@ -33,7 +33,6 @@ public class ConnectionHandlerObjects extends Thread {
 		this.serverKeyPair = serverKeyPair;
 	}
 
-
 	public void sendMessage(byte[] username, byte[] contact, byte[] message, int code){
 
 		//byte[] signature = edu.ucsb.cs290g.secureim.models.RSACrypto.signMessage(message, privkey);
@@ -87,10 +86,16 @@ public class ConnectionHandlerObjects extends Thread {
 			SecretKey symKey = RSACrypto.generateAESkey(128);
 			byte[] encKey = RSACrypto.encryptWithRSA(symKey.getEncoded(), contactKey);
 			byte[] encMsg = RSACrypto.encryptMessage(message, symKey);
+			
+//			byte[] decrypt = RSACrypto.decryptWithRSA(encKey, serverKeyPair.getPrivate());
+//			System.out.println("DECRYPT: " + decrypt.length);
+			
 			//byte[] encSnd = RSACrypto.encryptWithRSA(me.getBytes(), contactKey);
 			//byte[] encRcv = RSACrypto.encryptWithRSA(contact,contactKey);
 			byte[] encSnd = "server".getBytes();
 			byte[] encRcv = "arne".getBytes();
+			
+			System.out.println("ENC-KEY is: " + encKey.length);
 			Message srvMsg = new Message(encSnd, encRcv, encMsg, signature, code);
 			srvMsg.setMessageKey(encKey);
 			return srvMsg;
@@ -136,7 +141,7 @@ public class ConnectionHandlerObjects extends Thread {
 				if (contactKey.equals(response.getPublicKey())){
 					
 					//TODO: encrypt
-					m = generateServerMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?", StatusCode.AUTH_OK);
+					m = generateEncryptedServerMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?", StatusCode.AUTH_OK);
 					oout.writeObject(m);
 				}
 				else {
@@ -146,8 +151,6 @@ public class ConnectionHandlerObjects extends Thread {
 					server.close();
 					return;
 				}
-				
-
 				
 			
 				//USer found etc
@@ -171,42 +174,6 @@ public class ConnectionHandlerObjects extends Thread {
 					ListenObject.connections.get(RSACrypto.byteToStringConverter(contact)).sendMessage(username, contact, response.getMessage(),200);
 					
 					System.out.printf("%s: %s\n", RSACrypto.byteToStringConverter(username),RSACrypto.byteToStringConverter(response.getMessage()));
-
-
-				}
-				
-				
-				
-				
-				
-			}else{
-				//Unecrypted mode
-				ListenObject.authenticateUser(username,this);
-				System.out.println("New user authenticated as " + RSACrypto.byteToStringConverter(username) + " with response code " + response.getMessageCode());
-
-				
-				oout.writeObject(generateServerMessage("Authenticate successfully as " + RSACrypto.byteToStringConverter(username)+", who do you want to contact?",202));
-				while(!userFound){
-					response = (Message)oin.readObject();
-					contact = response.getMessage();
-
-					System.out.println(RSACrypto.byteToStringConverter(username) + " Trying to reach " +RSACrypto.byteToStringConverter(contact));
-					userFound = ListenObject.searchUser(contact);
-					if(!userFound){
-						oout.writeObject(generateServerMessage("User not found, please try someone else",404));
-						System.out.printf("User %s was not found\n", RSACrypto.byteToStringConverter(contact));
-					}
-				}
-				oout.writeObject(generateServerMessage("User found, connecting to " + RSACrypto.byteToStringConverter(contact),200));
-				System.out.println("User found, connecting...");
-
-				while ((response = (Message) oin.readObject()) != null) {   
-
-					ListenObject.connections.get(RSACrypto.byteToStringConverter(contact)).sendMessage(username, contact, response.getMessage(),200);
-					
-					System.out.printf("%s: %s\n", RSACrypto.byteToStringConverter(username),RSACrypto.byteToStringConverter(response.getMessage()));
-
-
 				}
 			}
 		} catch (IOException e) {

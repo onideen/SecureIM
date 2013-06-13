@@ -21,7 +21,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import android.util.Log;
+//import android.util.Log;
 
 import edu.ucsb.cs290g.secureim.crypto.RSACrypto;
 
@@ -71,7 +71,7 @@ public class Message implements Serializable {
     
     private byte[] decryptWithRSA(byte[] intput, PrivateKey privkey){
 		try {
-			Cipher cipher = Cipher.getInstance("RSA");
+			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			cipher.init(Cipher.DECRYPT_MODE, privkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -142,16 +142,19 @@ public class Message implements Serializable {
     }
     
     private SecretKey getSecretKey(PrivateKey privatekey){
+    	
+    	//Log.i("JAJA", "Length of encrypted MessageKey: "  + messageKey.length);
+    	
     	byte[] secretbyte = decryptWithRSA(messageKey, privatekey);
-    	Log.i("JAJA", "SecretByte: " + secretbyte.length);
-    	return new SecretKeySpec(secretbyte, 0, 127, "AES");
+    	//Log.i("JAJA", "SecretByte: " + bytesToHex(secretbyte));
+    	return new SecretKeySpec(secretbyte, 0, 128, "AES");
     }
     
     public String getDecryptedMessage(PrivateKey privatekey) {
-    	return RSACrypto.byteToStringConverter(message);
-    	/*SecretKey secret = getSecretKey(privatekey);
+    	//return RSACrypto.byteToStringConverter(message);
+    	SecretKey secret = getSecretKey(privatekey);
     	return RSACrypto.byteToStringConverter(decryptMessage(message, secret));
-    	*/
+    	
     }
     
     
@@ -169,10 +172,10 @@ public class Message implements Serializable {
     }
 
     public PublicKey getPublicKey() {
-    	RSAPublicKeySpec spec = new java.security.spec.RSAPublicKeySpec(mod, exp);
+    	RSAPublicKeySpec spec = new RSAPublicKeySpec(mod, exp);
 		KeyFactory keyfac;
 		try {
-			keyfac = KeyFactory.getInstance("RSA");
+			keyfac = KeyFactory.getInstance("RSA/ECB/PKCS1Padding");
 			PublicKey pubkey = keyfac.generatePublic(spec);
 			return pubkey;
 		} catch (NoSuchAlgorithmException e) {
@@ -186,7 +189,7 @@ public class Message implements Serializable {
     public void setPublicKey(PublicKey publicKey) {
     	KeyFactory fact;
 		try {
-			fact = KeyFactory.getInstance("RSA");
+			fact = KeyFactory.getInstance("RSA/ECB/PKCS1Padding");
 			RSAPublicKeySpec pub = fact.getKeySpec(publicKey, RSAPublicKeySpec.class);
 			mod = pub.getModulus();
 			exp = pub.getPublicExponent();
@@ -204,7 +207,18 @@ public class Message implements Serializable {
     public String toString() {
     	return RSACrypto.byteToStringConverter(from) + ": " + RSACrypto.byteToStringConverter(to) + " : " + RSACrypto.byteToStringConverter(message) ;
     }
-
+    
+    public static String bytesToHex(byte[] bytes ){
+    	final char[] hexArray = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    	char[] hexChars = new char[bytes.length*2];
+    	int v;
+    	for (int j = 0; j < bytes.length; j++) {
+    		v = bytes[j] & 0xFF;
+    		hexChars[j * 2] = hexArray[v >>> 4];
+    		hexChars[j * 2 +1] = hexArray[v & 0x0F];
+    	}
+    	return new String(hexChars);
+    }
 	
 }
 

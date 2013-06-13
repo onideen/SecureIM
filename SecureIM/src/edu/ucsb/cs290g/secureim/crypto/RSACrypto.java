@@ -101,7 +101,7 @@ public class RSACrypto {
 
 	public static byte[] encryptWithRSA(byte[] intput, PublicKey pubkey){
 		try {
-			Cipher cipher = Cipher.getInstance("RSA");
+			Cipher cipher = Cipher.getInstance("RSA/OAEPWithSHA-1AndMGF1Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, pubkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -136,11 +136,12 @@ public class RSACrypto {
 */
 	public static SecretKey generateAESkey(int keysize){
 		KeyGenerator kgen;
-
+		System.out.println("KEYSIZE: " + keysize);
 		try {
 			kgen = KeyGenerator.getInstance("AES");
-			kgen.init(256);
+			kgen.init(keysize);
 			SecretKey blockkey = kgen.generateKey();
+			System.out.println("BLOCK-KEY: " + blockkey.getEncoded().length);
 			return blockkey;
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
@@ -166,18 +167,14 @@ public class RSACrypto {
 	public static KeyPair generateRSAkey(int keysize){
 		KeyPairGenerator keyGen;
 		try {
-			keyGen = KeyPairGenerator.getInstance("RSA", "BC");
+			keyGen = KeyPairGenerator.getInstance("RSA");
 			keyGen.initialize(keysize);
 			KeyPair kp = keyGen.genKeyPair();
 			return kp;
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
-		} catch (NoSuchProviderException e) {
-			e.printStackTrace();
 		}
 		return null;
-
-
 	}
 
 	public static boolean verifySignature(byte[] signedHash, String text, PublicKey pubkey){

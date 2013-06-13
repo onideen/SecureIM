@@ -24,7 +24,7 @@ public class MessageHandler extends Thread {
     private ObjectInputStream in;
     private ObjectOutputStream out;
 
-    private static String servername = "192.168.0.20";
+    private static String servername = "169.231.93.87";
     private static int serverport = 12346;
 
     private boolean listening = true;

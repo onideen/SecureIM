@@ -80,6 +80,7 @@ public class ConnectTask extends AsyncTask<User, Void, Boolean> implements Messa
         if (message.getMessageCode() == StatusCode.AUTH_OK) {
             authenticated = true;
             mh.removeObserver(this);
+            Log.wtf(TAG, "Trying to get encrypted message");
             Log.wtf(TAG, "The decrypted message is: " + message.getDecryptedMessage(user.getPrivateKey()));
         } else if (message.getMessageCode() == StatusCode.UNAUTHORIZED) {
             denied = true;

@@ -89,7 +89,7 @@ public class KeyReader {
 	}
 	public static void savePublicKey(PublicKey pk, String user, Context ctx){
 		try {
-			KeyFactory fact = KeyFactory.getInstance("RSA");
+			KeyFactory fact = KeyFactory.getInstance("RSA/ECB/PKCS1Padding");
 			RSAPublicKeySpec pub = fact.getKeySpec(pk, RSAPublicKeySpec.class);
 			saveToFile(user + "-public.key", pub.getModulus(), pub.getPublicExponent(), ctx);
 		} catch (NoSuchAlgorithmException e) {
@@ -105,7 +105,7 @@ public class KeyReader {
 	public static void saveKeyPair(KeyPair keys, String user, Context ctx){
 
 		try {
-			KeyFactory fact = KeyFactory.getInstance("RSA");
+			KeyFactory fact = KeyFactory.getInstance("RSA/ECB/PKCS1Padding");
 			RSAPublicKeySpec pub = fact.getKeySpec(keys.getPublic(), RSAPublicKeySpec.class);
 			RSAPrivateKeySpec priv = fact.getKeySpec(keys.getPrivate(), RSAPrivateKeySpec.class);
 			saveToFile(user +"-public.key", pub.getModulus(), pub.getPublicExponent(), ctx);
@@ -144,7 +144,7 @@ public class KeyReader {
 			BigInteger exp = (BigInteger) ois.readObject();
 
 			java.security.spec.RSAPublicKeySpec spec = new java.security.spec.RSAPublicKeySpec(mod, exp);
-			KeyFactory keyfac = KeyFactory.getInstance("RSA");
+			KeyFactory keyfac = KeyFactory.getInstance("RSA/ECB/PKCS1Padding");
 			PublicKey pubkey = keyfac.generatePublic(spec);
 			ois.close();
 			
@@ -189,7 +189,7 @@ public class KeyReader {
 			BigInteger exp = (BigInteger) ois.readObject();
 
 			java.security.spec.RSAPrivateKeySpec spec = new java.security.spec.RSAPrivateKeySpec(mod, exp);
-			KeyFactory keyfac = KeyFactory.getInstance("RSA");
+			KeyFactory keyfac = KeyFactory.getInstance("RSA/ECB/PKCS1Padding");
 			PrivateKey privkey = keyfac.generatePrivate(spec);
 			fis.close();
 			ois.close();
