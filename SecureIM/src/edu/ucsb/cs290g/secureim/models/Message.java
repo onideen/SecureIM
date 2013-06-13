@@ -148,8 +148,10 @@ public class Message implements Serializable {
     }
     
     public String getDecryptedMessage(PrivateKey privatekey) {
-    	SecretKey secret = getSecretKey(privatekey);
+    	return RSACrypto.byteToStringConverter(message);
+    	/*SecretKey secret = getSecretKey(privatekey);
     	return RSACrypto.byteToStringConverter(decryptMessage(message, secret));
+    	*/
     }
     
     

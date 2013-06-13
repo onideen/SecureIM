@@ -134,17 +134,47 @@ public class ConnectionHandlerObjects extends Thread {
 				
 				Message m;
 				if (contactKey.equals(response.getPublicKey())){
-					m = generateEncryptedServerMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?", StatusCode.AUTH_OK);
+					
+					//TODO: encrypt
+					m = generateServerMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?", StatusCode.AUTH_OK);
+					oout.writeObject(m);
 				}
 				else {
 					m = generateServerMessage("Mismatched keys", StatusCode.UNAUTHORIZED);
+					oout.writeObject(m);					
+					//Close connection
+					server.close();
+					return;
 				}
-				oout.writeObject(m);
+				
 
 				
-				
-				
+			
 				//USer found etc
+				while (!userFound) {
+					response = (Message)oin.readObject();
+					contact = response.getDecryptedMessage(serverKeyPair.getPrivate()).getBytes();
+
+					System.out.println(RSACrypto.byteToStringConverter(username) + " Trying to reach " +RSACrypto.byteToStringConverter(contact));
+					
+					userFound = ListenObject.searchUser(contact);
+					if(!userFound){
+						oout.writeObject(generateServerMessage("User not found, please try someone else",404));
+						System.out.printf("User %s was not found\n", RSACrypto.byteToStringConverter(contact));
+					}
+				}
+				oout.writeObject(generateServerMessage("User found, connecting to " + RSACrypto.byteToStringConverter(contact),200));
+				System.out.println("User found, connecting...");
+
+				while ((response = (Message) oin.readObject()) != null) {   
+
+					ListenObject.connections.get(RSACrypto.byteToStringConverter(contact)).sendMessage(username, contact, response.getMessage(),200);
+					
+					System.out.printf("%s: %s\n", RSACrypto.byteToStringConverter(username),RSACrypto.byteToStringConverter(response.getMessage()));
+
+
+				}
+				
 				
 				
 				
