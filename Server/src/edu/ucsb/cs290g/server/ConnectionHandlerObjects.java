@@ -9,10 +9,10 @@ import java.security.PublicKey;
 import javax.crypto.SecretKey;
 
 
+import edu.ucsb.cs290g.secureim.crypto.KeyReader;
+import edu.ucsb.cs290g.secureim.crypto.RSACrypto;
 import edu.ucsb.cs290g.secureim.models.Message;
-import edu.ucsb.cs290g.secureim.models.RSACrypto;
 import edu.ucsb.cs290g.secureim.models.StatusCode;
-import edu.ucsb.cs290g.secureim.tasks.KeyReader;
 
 public class ConnectionHandlerObjects extends Thread {
 	private Socket server;
@@ -120,18 +120,25 @@ public class ConnectionHandlerObjects extends Thread {
 				System.out.println("New user authenticated as " + RSACrypto.byteToStringConverter(username) + " in encrypted mode");
 				
 				contactKey = KeyReader.readPublicKeyFromFile(RSACrypto.byteToStringConverter(username));
+				
 				if(contactKey==null){
+					
+					contactKey = response.getPublicKey();
+					KeyReader.savePublicKey(contactKey, RSACrypto.byteToStringConverter(username));
+
+					System.out.println("Public Key saved");
+					/*
 					System.out.println("Key not found, please supply");
 					oout.writeObject(generateServerMessage("Key not found, please supply",StatusCode.KEY_NOT_FOUND));
 					
-					
 					response = (Message)oin.readObject();
-					System.out.println("Got Message ");
-					
-					//PublicKey contacKey =  response.getMessage();
-					//PublicKey contacKey = response.getPublicKey();
+					contactKey = response.getPublicKey();
+
+					*/
 				}
-				oout.writeObject(generateServerMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?",202));
+				
+				oout.writeObject(generateServerMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?", StatusCode.AUTH_OK));
+
 				
 			}else{
 				//Unecrypted mode

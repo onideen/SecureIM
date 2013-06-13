@@ -11,10 +11,8 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import edu.ucsb.cs290g.secureim.ConnectionHandler;
-import edu.ucsb.cs290g.secureim.MessageObserver;
+import edu.ucsb.cs290g.secureim.crypto.KeyReader;
+import edu.ucsb.cs290g.secureim.interfaces.MessageObserver;
 import edu.ucsb.cs290g.secureim.models.Message;
 
 public class MessageHandler extends Thread {
@@ -26,11 +24,8 @@ public class MessageHandler extends Thread {
     private ObjectInputStream in;
     private ObjectOutputStream out;
 
-    private static String servername = "169.231.93.87";
+    private static String servername = "192.168.0.20";
     private static int serverport = 12346;
-
-
-
 
     private boolean listening = true;
     private boolean waitingToSend;
@@ -71,7 +66,6 @@ public class MessageHandler extends Thread {
             m = (Message) in.readObject();
             Log.i(TAG, "Got message" + m );
             
-            Log.i (TAG, "Public Key: " + m.getPublicKey());
             
             KeyReader.verify("server", m.getPublicKey(), ctx);
             
@@ -86,6 +80,7 @@ public class MessageHandler extends Thread {
                 if (waitingToSend){
                     listening = false;
                 } else {
+                	Log.i(TAG, "Listening..");
                     listening = true;
                     try {
                         m = (Message)in.readObject();
@@ -118,9 +113,11 @@ public class MessageHandler extends Thread {
         Log.i(TAG, "Waiting to send");
         while(listening){}
         try {
-            Log.i(TAG, "Sending: " + message);
             out.writeObject(message);
-        } catch (IOException e) {}
+            Log.i(TAG, "Sending: " + message);
+        } catch (IOException e) {
+        	Log.e(TAG, "Failed to send", e);
+        }
         waitingToSend = false;
         listening = true;
 

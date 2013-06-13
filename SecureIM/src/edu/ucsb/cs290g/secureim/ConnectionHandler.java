@@ -4,36 +4,21 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ProgressBar;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.StreamCorruptedException;
-import java.math.BigInteger;
-import java.net.Socket;
-import java.security.KeyFactory;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import edu.ucsb.cs290g.secureim.interfaces.MessageObserver;
 import edu.ucsb.cs290g.secureim.models.Conversation;
 import edu.ucsb.cs290g.secureim.models.Message;
-import edu.ucsb.cs290g.secureim.models.RSACrypto;
+import edu.ucsb.cs290g.secureim.models.User;
 import edu.ucsb.cs290g.secureim.tasks.ConnectTask;
 import edu.ucsb.cs290g.secureim.tasks.MessageHandler;
 import edu.ucsb.cs290g.secureim.tasks.PrepareKeyTask;
@@ -51,12 +36,11 @@ public class ConnectionHandler  {
 
 
     private boolean isConnected = false;
-    private String me;
+    private User me;
     private Context ctx;
     private boolean listening = false;
 
     private PrivateKey myPrivateKey;
-    private PublicKey myPublicKey;
 
     MessageHandler messageHandler;
 
@@ -75,28 +59,27 @@ public class ConnectionHandler  {
     }
     
 
-    public void connect(String me) {
+    public void connect(String username) {
         this.isConnected = false;
-        this.me = me;
-
+        this.me = new User(username);
         prepareKeys(me);
 
         messageHandler = new MessageHandler(ctx);
         messageHandler.start();
 
-        Log.d(TAG, "Trying log in with username " + me);
+        Log.d(TAG, "Trying log in with username " + me.getUsername());
 
         new ConnectTask(this.ctx, messageHandler).execute(me);
 
     }
 
-    private void prepareKeys(String me) {
+    private void prepareKeys(User me) {
     	
     	try {
-			AsyncTask<String, Void, KeyPair> task = new PrepareKeyTask(ctx).execute(me);
+			AsyncTask<User, Void, KeyPair> task = new PrepareKeyTask(ctx).execute(me);
 			KeyPair kp = task.get();
 			myPrivateKey = kp.getPrivate();
-			myPublicKey = kp.getPublic();
+			me.setPublicKey(kp.getPublic());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (ExecutionException e) {
@@ -112,12 +95,12 @@ public class ConnectionHandler  {
 
             StartConversationTask ct = new StartConversationTask(this.ctx, messageHandler);
 
-            Message message = new Message(me, "server", user);
+            Message message = new Message(me.getUsername(), "server", user);
 
             try {
                 if (ct.execute(message).get()) {
                     Log.d(TAG, "Starting a conversation with " + user);
-                    Conversation conversation = Conversation.startConversation(me, user, conversations);
+                    Conversation conversation = Conversation.startConversation(me.getUsername(), user, conversations);
                     Log.i(TAG, "Conversation between " + me + " and " + user + " started");
                     return true;
                 }
@@ -130,7 +113,7 @@ public class ConnectionHandler  {
 
         } else {
             Log.i(TAG, "Not exists, connect " + me);
-            connect(me);
+            connect(me.getUsername());
         }
         return false;
     }
@@ -140,7 +123,7 @@ public class ConnectionHandler  {
             messageHandler.sendMessage(message);
         } else {
 
-            connect(me);
+            connect(me.getUsername());
         }
     }
 
@@ -157,11 +140,11 @@ public class ConnectionHandler  {
         this.ctx = context;
     }
 
-    public void connectedAs(String user) {
+    public void connectedAs(User user) {
     	
     	isConnected = true;
         Bundle args = new Bundle();
-        args.putString("me", user);
+        args.putString("me", user.getUsername());
 
 
         FragmentManager fm = ((Activity)ctx).getFragmentManager();
@@ -174,8 +157,5 @@ public class ConnectionHandler  {
         transaction.replace(R.id.fragment, fragment);
         transaction.commit();
 
-    }
-    public PublicKey getPublicKey(){
-		return myPublicKey;
     }
 }

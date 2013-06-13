@@ -1,12 +1,12 @@
-
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.KeyPair;
 import java.util.HashMap;
 
-import edu.ucsb.cs290g.secureim.models.RSACrypto;
+import edu.ucsb.cs290g.secureim.crypto.KeyReader;
+import edu.ucsb.cs290g.secureim.crypto.RSACrypto;
+
 
 public class ListenObject {
 	public static String[] users = new String[10];
@@ -30,8 +30,15 @@ public class ListenObject {
 		ServerSocket mainSocket = null;
 		Socket clientSocket = null;
 		
-		// TODO: Check if keypair exists, if not generate
-		KeyPair kp = RSACrypto.generateRSAkey(2048);
+		KeyPair kp;
+		
+		if (KeyReader.keyExists("self-private.key")) {
+			kp = KeyReader.readKeyPairFromFile("self");
+		}else {
+			kp = RSACrypto.generateRSAkey(2048);
+			KeyReader.saveKeyPair(kp, "self");
+		}
+		
 
 		try {
 			mainSocket = new ServerSocket(portnr);

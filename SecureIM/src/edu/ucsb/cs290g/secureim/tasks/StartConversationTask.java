@@ -5,10 +5,8 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import java.io.IOException;
-
-import edu.ucsb.cs290g.secureim.MessageObserver;
 import edu.ucsb.cs290g.secureim.R;
+import edu.ucsb.cs290g.secureim.interfaces.MessageObserver;
 import edu.ucsb.cs290g.secureim.models.Message;
 import edu.ucsb.cs290g.secureim.models.StatusCode;
 

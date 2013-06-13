@@ -2,7 +2,6 @@ package edu.ucsb.cs290g.secureim;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import edu.ucsb.cs290g.secureim.interfaces.MessageObserver;
 import edu.ucsb.cs290g.secureim.models.Message;
 
 public class ChatScreen extends Fragment implements MessageObserver {

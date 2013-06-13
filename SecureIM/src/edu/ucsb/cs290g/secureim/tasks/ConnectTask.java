@@ -6,12 +6,13 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import edu.ucsb.cs290g.secureim.ConnectionHandler;
-import edu.ucsb.cs290g.secureim.MessageObserver;
 import edu.ucsb.cs290g.secureim.R;
+import edu.ucsb.cs290g.secureim.interfaces.MessageObserver;
 import edu.ucsb.cs290g.secureim.models.StatusCode;
 import edu.ucsb.cs290g.secureim.models.Message;
+import edu.ucsb.cs290g.secureim.models.User;
 
-public class ConnectTask extends AsyncTask<String, Void, Boolean> implements MessageObserver{
+public class ConnectTask extends AsyncTask<User, Void, Boolean> implements MessageObserver{
 
     private final String TAG = "ConnectTask";
     private final MessageHandler mh;
@@ -22,7 +23,7 @@ public class ConnectTask extends AsyncTask<String, Void, Boolean> implements Mes
     private boolean authenticated = false;
     private boolean denied = false;
     
-    private String user;
+    private User user;
     
 
     public ConnectTask(Context ctx, MessageHandler mh) {
@@ -45,13 +46,14 @@ public class ConnectTask extends AsyncTask<String, Void, Boolean> implements Mes
     }
 
     @Override
-    protected Boolean doInBackground(String... username) {
-    	user = username[0];
+    protected Boolean doInBackground(User... users) {
+    	user = users[0];
     	
-    	Log.i(TAG, "Send username: " + user);
-        Message m;
-        mh.sendMessage(new Message(user.getBytes(), "server".getBytes(), user.getBytes(), null, StatusCode.ENCRYPT));
-        Log.i(TAG, "Username sent");
+    	Log.i(TAG, "Sendig public key for: " + user.getUsername());
+        Message m = new Message(user.getUsername().getBytes(), "server".getBytes(), user.getUsername().getBytes(), null, StatusCode.ENCRYPT);
+        m.setPublicKey(user.getPublickey());
+        mh.sendMessage(m);
+        Log.i(TAG, "Username sent: " + user.getUsername());
         mh.addObserver(this);
 
         while (!authenticated){
@@ -83,8 +85,8 @@ public class ConnectTask extends AsyncTask<String, Void, Boolean> implements Mes
             mh.removeObserver(this);
         } else if (message.getMessageCode() == StatusCode.KEY_NOT_FOUND) {
         	Log.i(TAG, "Sending Key");
-        	mh.sendMessage(new Message(user, "server", "TATA"));
-        	Log.i(TAG, "Key sent");
+        	//mh.sendMessage(new Message(user, "server", "TATA"));
+//        	/Log.i(TAG, "Key sent");
         	//ConnectionHandler.getConnectionHandler(ctx).getPublicKey()
         }
 

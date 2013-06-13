@@ -5,8 +5,9 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
+
+import edu.ucsb.cs290g.secureim.crypto.RSACrypto;
 import edu.ucsb.cs290g.secureim.models.Message;
-import edu.ucsb.cs290g.secureim.models.RSACrypto;
 
 public class EncChatClient {
 	ObjectOutputStream oout = null;
