@@ -23,7 +23,12 @@ With the recent scandals in government mass surveillance the need for a secure w
 
 \section {Introduction}
 \label{sec:introduction}
+For this project we wanted to implempent an instant messaging clint for android. We called the application Secure IM. The purpose of the application is that you should be able to send messages to your friends without having to worry about that other people are reading your messages. To do that we have implemented an application that uses RSA encryption to when sending messages. One of the biggest issues by using applications to send messages secure is that you have to trust the developer or the server provided by the developers, and because of that reason our project is a open-source and are availabe at http://www.github.com/vegaen/SecureIM. It includes the server and the client, so the users are free to set up their own server if do not put enough trust in the server provided. 
+
+
 In this paper we are going to cover our design for a secure chat client that uses a combination of symmetric AES encryption and RSA public key encryption. Software design choices will be covered inn section \ref{sec:design}, the authentication protocol in section \ref{sec:auth} and possible improvements in section \ref{sec:improve}. 
+
+
 \section {Software Design}
 \label{sec:design}
 This application has a server-client architecture, where the android-devices are clients and needs a server to run. All messages goes through the server. If the server receives a message that is for another user it redirects it to the right reciever.
@@ -57,8 +62,6 @@ When a messages passes through the server the to and from fields gets decrypted 
 
 \section {Conclusion}
 \label{sec:conclusion}
-
-
 
 \section {Improvements and future work}
 \label{sec:improve}
