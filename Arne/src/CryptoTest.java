@@ -50,7 +50,7 @@ public class CryptoTest {
 
 	public static byte[] encryptWithRSA(byte[] intput, PublicKey pubkey){
 		try {
-			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding", "BC");
 			cipher.init(Cipher.ENCRYPT_MODE, pubkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -64,13 +64,16 @@ public class CryptoTest {
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
 			e.printStackTrace();
+		} catch (NoSuchProviderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return null;
 	}
 
 	private byte[] decryptWithRSA(byte[] intput, PrivateKey privkey){
 		try {
-			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+			Cipher cipher = Cipher.getInstance("RSA/NONE/PKCS1Padding", "BC");
 			cipher.init(Cipher.DECRYPT_MODE, privkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -84,6 +87,9 @@ public class CryptoTest {
 			System.out.println("Illegal Blocks");
 		} catch (BadPaddingException e) {
 			System.out.println("BadPaddingEx");
+		} catch (NoSuchProviderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return null;
 	}

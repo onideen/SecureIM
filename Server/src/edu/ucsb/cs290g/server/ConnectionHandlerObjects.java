@@ -12,34 +12,31 @@ import javax.crypto.SecretKey;
 import edu.ucsb.cs290g.secureim.crypto.KeyReader;
 import edu.ucsb.cs290g.secureim.crypto.RSACrypto;
 import edu.ucsb.cs290g.secureim.models.Message;
+import edu.ucsb.cs290g.secureim.models.MessageFactory;
 import edu.ucsb.cs290g.secureim.models.StatusCode;
+import edu.ucsb.cs290g.secureim.models.User;
 
 public class ConnectionHandlerObjects extends Thread {
 	private Socket server;
 
-	private KeyPair serverKeyPair;
-
-	private PublicKey contactKey;
 	private byte[] username;
 	private byte[] contact;
 	private ObjectOutputStream oout;
 	private ObjectInputStream oin;
 	private Message response;
-	private String me = "Server";
+	private User me;
+	MessageFactory mf;
 	
 	public ConnectionHandlerObjects(Socket server, KeyPair serverKeyPair) {
 
 		this.server = server;
-		this.serverKeyPair = serverKeyPair;
+		this.me = new User("server",serverKeyPair);
 	}
 
-	public void sendMessage(byte[] username, byte[] contact, byte[] message, int code){
+	public void sendMessage(Message message){
 
-		//byte[] signature = edu.ucsb.cs290g.secureim.models.RSACrypto.signMessage(message, privkey);
-		byte[] signature = message;
-		Message newMessage = new Message(username,contact,message, signature,code);
 		try {
-			oout.writeObject(newMessage);
+			oout.writeObject(mf.forwardFromServer(message));
 		} catch (IOException e) {
 			System.out.println("Could not send message in sendMessage");
 
@@ -56,8 +53,8 @@ public class ConnectionHandlerObjects extends Thread {
 			//byte[] signature = edu.ucsb.cs290g.secureim.models.RSACrypto.signMessage(message.getBytes("UTF-8"), privkey);
 			byte[] signature = you.getBytes();
 
-			auth = new Message(me.getBytes("UTF-8"), you.getBytes("UTF-8"), message.getBytes("UTF-8"), signature,530);
-			auth.setPublicKey(serverKeyPair.getPublic());
+			auth = new Message(me.getUsername().getBytes("UTF-8"), you.getBytes("UTF-8"), message.getBytes("UTF-8"), signature,530);
+			auth.setPublicKey(me.getPublickey());
 		} catch (UnsupportedEncodingException e) {
 			System.out.println("Could not convert to UTF-8");
 		}
@@ -70,35 +67,8 @@ public class ConnectionHandlerObjects extends Thread {
 		try {
 			//byte[] signature = edu.ucsb.cs290g.secureim.models.RSACrypto.signMessage(message.getBytes("UTF-8"), privkey);
 			byte[] signature = message.getBytes();
-			Message success = new Message(me.getBytes("UTF-8"), username, message.getBytes("UTF-8"), signature, code);
+			Message success = new Message(me.getUsername().getBytes("UTF-8"), username, message.getBytes("UTF-8"), signature, code);
 			return success;
-		} catch (UnsupportedEncodingException e) {
-			System.out.println("Could not convert to UTF-8");
-		}
-		return null;
-	}
-
-	public Message generateEncryptedServerMessage(String message, int code){
-
-
-		try {
-			byte[] signature = RSACrypto.signMessage(message.getBytes("UTF-8"), serverKeyPair.getPrivate());
-			SecretKey symKey = RSACrypto.generateAESkey(128);
-			byte[] encKey = RSACrypto.encryptWithRSA(symKey.getEncoded(), contactKey);
-			byte[] encMsg = RSACrypto.encryptMessage(message, symKey);
-			
-//			byte[] decrypt = RSACrypto.decryptWithRSA(encKey, serverKeyPair.getPrivate());
-//			System.out.println("DECRYPT: " + decrypt.length);
-			
-			//byte[] encSnd = RSACrypto.encryptWithRSA(me.getBytes(), contactKey);
-			//byte[] encRcv = RSACrypto.encryptWithRSA(contact,contactKey);
-			byte[] encSnd = "server".getBytes();
-			byte[] encRcv = "arne".getBytes();
-			
-			System.out.println("ENC-KEY is: " + encKey.length);
-			Message srvMsg = new Message(encSnd, encRcv, encMsg, signature, code);
-			srvMsg.setMessageKey(encKey);
-			return srvMsg;
 		} catch (UnsupportedEncodingException e) {
 			System.out.println("Could not convert to UTF-8");
 		}
@@ -110,7 +80,7 @@ public class ConnectionHandlerObjects extends Thread {
 		try {
 
 			oout = new ObjectOutputStream(server.getOutputStream());
-			boolean userFound = false;
+			PublicKey userKey = null;
 			boolean encrypted = false;
 
 			//Sending Authentification Challenge
@@ -122,12 +92,13 @@ public class ConnectionHandlerObjects extends Thread {
 			response = (Message)oin.readObject();
 			username = response.getFrom();
 
-			if(response.getMessageCode() == 230){
+			if(response.getStatusCode() == 230){
 				//Encrypted mode
 				ListenObject.authenticateUser(username,this);
 				System.out.println("New user authenticated as " + RSACrypto.byteToStringConverter(username) + " in encrypted mode");
 				
-				contactKey = KeyReader.readPublicKeyFromFile(RSACrypto.byteToStringConverter(username));
+				PublicKey contactKey = KeyReader.readPublicKeyFromFile(RSACrypto.byteToStringConverter(username));
+				
 				
 				if(contactKey==null){
 					
@@ -137,15 +108,14 @@ public class ConnectionHandlerObjects extends Thread {
 					System.out.println("Public Key saved");	
 				}
 				
-				Message m;
+				mf = new MessageFactory(me, RSACrypto.byteToStringConverter(contact), contactKey);
 				if (contactKey.equals(response.getPublicKey())){
 					
-					//TODO: encrypt
-					m = generateEncryptedServerMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?", StatusCode.AUTH_OK);
-					oout.writeObject(m);
+					oout.writeObject(mf.createMessage("Authenticate successfully as" + RSACrypto.byteToStringConverter(username)+", who do you want to contact?", StatusCode.AUTH_OK));
 				}
 				else {
-					m = generateServerMessage("Mismatched keys", StatusCode.UNAUTHORIZED);
+					
+					Message m = generateServerMessage("Mismatched keys", StatusCode.UNAUTHORIZED);
 					oout.writeObject(m);					
 					//Close connection
 					server.close();
@@ -154,24 +124,29 @@ public class ConnectionHandlerObjects extends Thread {
 				
 			
 				//USer found etc
-				while (!userFound) {
+				while (userKey == null) {
 					response = (Message)oin.readObject();
-					contact = response.getDecryptedMessage(serverKeyPair.getPrivate()).getBytes();
+					contact = response.getDecryptedMessage(me.getPrivateKey()).getBytes();
 
 					System.out.println(RSACrypto.byteToStringConverter(username) + " Trying to reach " +RSACrypto.byteToStringConverter(contact));
 					
-					userFound = ListenObject.searchUser(contact);
-					if(!userFound){
-						oout.writeObject(generateServerMessage("User not found, please try someone else",404));
+					boolean userFound = ListenObject.searchUser(contact);
+					if(userFound){
+						userKey = KeyReader.readPublicKeyFromFile(RSACrypto.byteToStringConverter(contact));
+					}else{
+						oout.writeObject(mf.createMessage("User not found, please try someone else", StatusCode.USER_NOT_FOUND));
 						System.out.printf("User %s was not found\n", RSACrypto.byteToStringConverter(contact));
 					}
 				}
-				oout.writeObject(generateServerMessage("User found, connecting to " + RSACrypto.byteToStringConverter(contact),200));
+				
+				Message m = mf.createMessage("User found, connecting to " + RSACrypto.byteToStringConverter(contact), StatusCode.CONNECTION_ESTABLISHED);
+				m.setPublicKey(userKey);
+				oout.writeObject(m);
 				System.out.println("User found, connecting...");
 
 				while ((response = (Message) oin.readObject()) != null) {   
 
-					ListenObject.connections.get(RSACrypto.byteToStringConverter(contact)).sendMessage(username, contact, response.getMessage(),200);
+					ListenObject.connections.get(RSACrypto.byteToStringConverter(contact)).sendMessage(response);
 					
 					System.out.printf("%s: %s\n", RSACrypto.byteToStringConverter(username),RSACrypto.byteToStringConverter(response.getMessage()));
 				}

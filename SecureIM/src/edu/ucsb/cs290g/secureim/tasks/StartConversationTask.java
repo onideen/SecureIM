@@ -1,5 +1,7 @@
 package edu.ucsb.cs290g.secureim.tasks;
 
+import java.security.PublicKey;
+
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -10,7 +12,7 @@ import edu.ucsb.cs290g.secureim.interfaces.MessageObserver;
 import edu.ucsb.cs290g.secureim.models.Message;
 import edu.ucsb.cs290g.secureim.models.StatusCode;
 
-public class StartConversationTask extends AsyncTask<Message, Void, Boolean> implements MessageObserver {
+public class StartConversationTask extends AsyncTask<Message, Void, PublicKey> implements MessageObserver {
 
     private final String TAG = "StartConversationTask";
 
@@ -20,6 +22,8 @@ public class StartConversationTask extends AsyncTask<Message, Void, Boolean> imp
     private ProgressDialog pDialog;
     private boolean establishedConnection = false;
     private boolean denied = false;
+
+	private PublicKey contactKey;
 
 
     public StartConversationTask(Context ctx, MessageHandler mh) {
@@ -40,21 +44,21 @@ public class StartConversationTask extends AsyncTask<Message, Void, Boolean> imp
     }
 
     @Override
-    protected Boolean doInBackground(Message... initMessage) {
+    protected PublicKey doInBackground(Message... initMessage) {
 
         mh.sendMessage(initMessage[0]);
         mh.addObserver(this);
 
 
         while (!establishedConnection){
-            if (denied) return false;
+            if (denied) return null;
         }
-        return true;
+        return contactKey;
 
     }
 
     @Override
-    protected void onPostExecute(Boolean aBoolean) {
+    protected void onPostExecute(PublicKey aBoolean) {
         super.onPostExecute(aBoolean);
         if (pDialog != null && pDialog.isShowing())
             pDialog.dismiss();
@@ -63,11 +67,13 @@ public class StartConversationTask extends AsyncTask<Message, Void, Boolean> imp
 
     @Override
     public void onNewMessage(Message message) {
-        if (message.getMessageCode() == StatusCode.CONNECTION_ESTABLISHED) {
+        if (message.getStatusCode() == StatusCode.CONNECTION_ESTABLISHED) {
+        	contactKey = message.getPublicKey();
+        	Log.wtf(TAG, (contactKey == null) ? "ARE YOU KIDDING ME" : "NOT NULL");
             establishedConnection = true;
             mh.removeObserver(this);
         }
-        else if (message.getMessageCode() == StatusCode.USER_NOT_FOUND) {
+        else if (message.getStatusCode() == StatusCode.USER_NOT_FOUND) {
             denied = true;
             mh.removeObserver(this);
         }

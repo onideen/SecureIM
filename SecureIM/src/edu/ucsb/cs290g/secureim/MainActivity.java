@@ -1,5 +1,9 @@
 package edu.ucsb.cs290g.secureim;
 
+import java.security.Security;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -21,6 +25,7 @@ public class MainActivity extends Activity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
 
         setContentView(R.layout.main);
         FragmentManager fm = getFragmentManager();

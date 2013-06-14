@@ -2,7 +2,10 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.KeyPair;
+import java.security.Security;
 import java.util.HashMap;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import edu.ucsb.cs290g.secureim.crypto.KeyReader;
 import edu.ucsb.cs290g.secureim.crypto.RSACrypto;
@@ -29,14 +32,15 @@ public class ListenObject {
 	public static void portListner(int portnr){
 		ServerSocket mainSocket = null;
 		Socket clientSocket = null;
+		Security.addProvider(new BouncyCastleProvider());
 		
 		KeyPair kp;
 		
-		if (KeyReader.keyExists("self-private.key")) {
-			kp = KeyReader.readKeyPairFromFile("self");
+		if (KeyReader.keyExists("server-private.key")) {
+			kp = KeyReader.readKeyPairFromFile("server");
 		}else {
 			kp = RSACrypto.generateRSAkey(2048);
-			KeyReader.saveKeyPair(kp, "self");
+			KeyReader.saveKeyPair(kp, "server");
 		}
 		
 

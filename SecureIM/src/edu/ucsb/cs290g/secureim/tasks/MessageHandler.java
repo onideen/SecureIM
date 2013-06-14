@@ -75,7 +75,7 @@ public class MessageHandler extends Thread {
             else {
             	
 	            
-	            if (m.getMessageCode() != 530) {
+	            if (m.getStatusCode() != 530) {
 	                Log.i(TAG, "Couldn't get 530 message from server");
 	                return;
 	            }

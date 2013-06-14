@@ -80,7 +80,7 @@ public class RSACrypto {
 		byte[] hash = getSha256(text);
 
 		try {
-			Cipher cipher = Cipher.getInstance("RSA");
+			Cipher cipher = Cipher.getInstance("RSA/NONE/PKCS1Padding", "BC");
 			cipher.init(Cipher.ENCRYPT_MODE, privkey);
 			byte[] signedHash = cipher.doFinal(hash);
 			return signedHash;
@@ -94,6 +94,8 @@ public class RSACrypto {
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
 			e.printStackTrace();
+		} catch (NoSuchProviderException e) {
+			e.printStackTrace();
 		}
         return null;
 
@@ -101,7 +103,7 @@ public class RSACrypto {
 
 	public static byte[] encryptWithRSA(byte[] intput, PublicKey pubkey){
 		try {
-			Cipher cipher = Cipher.getInstance("RSA/OAEPWithSHA-1AndMGF1Padding");
+			Cipher cipher = Cipher.getInstance("RSA/NONE/PKCS1Padding", "BC");
 			cipher.init(Cipher.ENCRYPT_MODE, pubkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -115,13 +117,16 @@ public class RSACrypto {
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
 			e.printStackTrace();
+		} catch (NoSuchProviderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
         return null;
 	}
-/*
+
 	public static byte[] decryptWithRSA(byte[] intput, PrivateKey privkey){
 		try {
-			Cipher cipher = Cipher.getInstance("RSA");
+			Cipher cipher = Cipher.getInstance("RSA/NONE/PKCS1Padding", "BC");
 			cipher.init(Cipher.DECRYPT_MODE, privkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -130,10 +135,12 @@ public class RSACrypto {
 		} catch (InvalidKeyException e) {
 		} catch (IllegalBlockSizeException e) {
 		} catch (BadPaddingException e) {
+		} catch (NoSuchProviderException e) {
+			e.printStackTrace();
 		}
         return null;
 	}
-*/
+
 	public static SecretKey generateAESkey(int keysize){
 		KeyGenerator kgen;
 		System.out.println("KEYSIZE: " + keysize);
@@ -182,7 +189,7 @@ public class RSACrypto {
 		//System.out.println("Has in veri: " + hash);
 
 		try {
-			Cipher cipher = Cipher.getInstance("RSA");
+			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			cipher.init(Cipher.DECRYPT_MODE, pubkey);
 			byte[] computedHash = cipher.doFinal(signedHash);
 			System.out.println(Arrays.toString(computedHash));

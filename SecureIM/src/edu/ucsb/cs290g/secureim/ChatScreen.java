@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import edu.ucsb.cs290g.secureim.interfaces.MessageObserver;
 import edu.ucsb.cs290g.secureim.models.Message;
+import edu.ucsb.cs290g.secureim.models.User;
 
 public class ChatScreen extends Fragment implements MessageObserver {
 
@@ -57,16 +58,15 @@ public class ChatScreen extends Fragment implements MessageObserver {
         public void onClick(View v) {
             String toSend = messageText.getText().toString();
             if (!toSend.equals("")) {
-                Message message = new Message(me, user, messageText.getText().toString());
-                ConnectionHandler.getConnectionHandler(getActivity()).sendMessage(message);
-                appendToChatLog(message);
+                ConnectionHandler.getConnectionHandler(getActivity()).sendMessage(toSend);
+                appendToChatLog(me, toSend);
                 messageText.setText("");
             }
         }
     };
 
-    private void appendToChatLog(Message message) {
-        chatField.append(message.getSFrom() + ": " + message.getSMessage() + "\n");
+    private void appendToChatLog(String from, String message) {
+        chatField.append(from + ": " + message + "\n");
     }
 
     @Override
@@ -78,12 +78,14 @@ public class ChatScreen extends Fragment implements MessageObserver {
 
     public class UpdateChat implements Runnable {
         private Message message;
+
         public UpdateChat(Message message) {
             this.message = message;
         }
 
         public void run() {
-            appendToChatLog(message);
+        	User me = ConnectionHandler.getConnectionHandler(null).getUser();
+        	appendToChatLog(message.getDecryptSender(me.getPrivateKey()), message.getDecryptedMessage(me.getPrivateKey()));
         }
     }
 

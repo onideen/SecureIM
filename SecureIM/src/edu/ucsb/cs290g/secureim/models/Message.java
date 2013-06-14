@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -20,6 +21,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+
+import android.util.Log;
 
 //import android.util.Log;
 
@@ -40,7 +43,7 @@ public class Message implements Serializable {
 	private byte[] from;
     private byte[] to;
     private byte[] message;
-    private int messageCode;
+    private int statusCode;
     private byte[] messageKey;
     private byte[] signature;
     private Timestamp timestamp;
@@ -65,23 +68,18 @@ public class Message implements Serializable {
         this.to = to;
         this.message = message;
         this.signature = signature;
-        this.messageCode = code;
+        this.statusCode = code;
         
     }
     
-    private byte[] decryptWithRSA(byte[] intput, PrivateKey privkey){
-		try {
-			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-			cipher.init(Cipher.DECRYPT_MODE, privkey);
-			byte[] encMsg = cipher.doFinal(intput);
-			return encMsg;
-		} catch (NoSuchAlgorithmException e) {
-		} catch (NoSuchPaddingException e) {
-		} catch (InvalidKeyException e) {
-		} catch (IllegalBlockSizeException e) {
-		} catch (BadPaddingException e) {
-		}
-        return null;
+    public Message(byte[] encSnd, byte[] encRcv, byte[] encMsg, byte[] signature, byte[] encBlockKey, int statuscode) {
+    	this.from = encSnd;
+        this.to = encRcv;
+        this.message = encMsg;
+        this.signature = signature;
+        this.statusCode = statuscode;
+        this.messageKey = encBlockKey;
+        System.out.println("BBBBBBBBBBBBBBBBBBBBBBBBB: " + encBlockKey);
 	}
     
     public byte[] decryptMessage(byte[] text, SecretKey blockkey){
@@ -117,6 +115,13 @@ public class Message implements Serializable {
         return message;
     }
 
+    public void setReceiver(byte[] receiver){
+    	to = receiver;
+    }
+    public void setSender (byte[] sender){
+    	from = sender;
+    }
+    
     public Timestamp getTimestamp() {
         return timestamp;
     }
@@ -125,8 +130,8 @@ public class Message implements Serializable {
         return signature;
     }
 
-    public int getMessageCode(){
-        return messageCode;
+    public int getStatusCode(){
+        return statusCode;
     }
 
     public String getSFrom(){
@@ -145,18 +150,30 @@ public class Message implements Serializable {
     	
     	//Log.i("JAJA", "Length of encrypted MessageKey: "  + messageKey.length);
     	
-    	byte[] secretbyte = decryptWithRSA(messageKey, privatekey);
+    	byte[] secretbyte = RSACrypto.decryptWithRSA(messageKey, privatekey);
+
+    	//Log.i("JAJA", "Length of decrypted MessageKey: "  + secretbyte.length);
     	//Log.i("JAJA", "SecretByte: " + bytesToHex(secretbyte));
-    	return new SecretKeySpec(secretbyte, 0, 128, "AES");
+    	
+    	return new SecretKeySpec(secretbyte, 0, secretbyte.length, "AES");
     }
     
     public String getDecryptedMessage(PrivateKey privatekey) {
     	//return RSACrypto.byteToStringConverter(message);
     	SecretKey secret = getSecretKey(privatekey);
+    	
     	return RSACrypto.byteToStringConverter(decryptMessage(message, secret));
     	
     }
     
+    public String getDecryptSender(PrivateKey privateKey) {
+    	System.out.println("LENGDEN AV SENDER: " + from.length);
+    	return RSACrypto.byteToStringConverter(RSACrypto.decryptWithRSA(from, privateKey));
+    }
+
+    public String getDecryptReceiver(PrivateKey privateKey) {
+    	return RSACrypto.byteToStringConverter(RSACrypto.decryptWithRSA(to, privateKey));
+    }
     
     public static String byteToStringConverter(byte[] text){
         String response = Arrays.toString(text);
@@ -175,7 +192,7 @@ public class Message implements Serializable {
     	RSAPublicKeySpec spec = new RSAPublicKeySpec(mod, exp);
 		KeyFactory keyfac;
 		try {
-			keyfac = KeyFactory.getInstance("RSA/ECB/PKCS1Padding");
+			keyfac = KeyFactory.getInstance("RSA");
 			PublicKey pubkey = keyfac.generatePublic(spec);
 			return pubkey;
 		} catch (NoSuchAlgorithmException e) {
@@ -189,7 +206,7 @@ public class Message implements Serializable {
     public void setPublicKey(PublicKey publicKey) {
     	KeyFactory fact;
 		try {
-			fact = KeyFactory.getInstance("RSA/ECB/PKCS1Padding");
+			fact = KeyFactory.getInstance("RSA");
 			RSAPublicKeySpec pub = fact.getKeySpec(publicKey, RSAPublicKeySpec.class);
 			mod = pub.getModulus();
 			exp = pub.getPublicExponent();
