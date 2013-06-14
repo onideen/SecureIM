@@ -5,6 +5,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Security;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -13,7 +14,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class CryptoTest {
 
@@ -50,7 +51,7 @@ public class CryptoTest {
 
 	public static byte[] encryptWithRSA(byte[] intput, PublicKey pubkey){
 		try {
-			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding" , "BC");
 			cipher.init(Cipher.ENCRYPT_MODE, pubkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -64,13 +65,16 @@ public class CryptoTest {
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
 			e.printStackTrace();
+		} catch (NoSuchProviderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return null;
 	}
 
 	private byte[] decryptWithRSA(byte[] intput, PrivateKey privkey){
 		try {
-			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding", "BC");
 			cipher.init(Cipher.DECRYPT_MODE, privkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -84,10 +88,15 @@ public class CryptoTest {
 			System.out.println("Illegal Blocks");
 		} catch (BadPaddingException e) {
 			System.out.println("BadPaddingEx");
+		} catch (NoSuchProviderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return null;
 	}
 	public CryptoTest() {
+		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		
 		SecretKey supa = generateAESkey(128);
 		KeyPair kp = generateRSAkey(2048);
 		KeyPair kp2 = generateRSAkey(2048);
@@ -97,6 +106,9 @@ public class CryptoTest {
 		System.out.println(bytesToHex(enc));
 		System.out.println(bytesToHex(dec));
 		System.out.println(Arrays.equals(dec, content));
+		
+		
+		System.out.println(BouncyCastleProvider.PROVIDER_NAME);
 	}
 
 	public static String bytesToHex(byte[] bytes) {
