@@ -5,6 +5,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Security;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -13,7 +14,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-
 
 public class CryptoTest {
 
@@ -50,7 +50,11 @@ public class CryptoTest {
 
 	public static byte[] encryptWithRSA(byte[] intput, PublicKey pubkey){
 		try {
+<<<<<<< HEAD
 			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding", "BC");
+=======
+			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding" , "BC");
+>>>>>>> cd0bb64a03438db601e325cfec7bf3351e9a95c4
 			cipher.init(Cipher.ENCRYPT_MODE, pubkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -73,7 +77,7 @@ public class CryptoTest {
 
 	private byte[] decryptWithRSA(byte[] intput, PrivateKey privkey){
 		try {
-			Cipher cipher = Cipher.getInstance("RSA/NONE/PKCS1Padding", "BC");
+			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding", "BC");
 			cipher.init(Cipher.DECRYPT_MODE, privkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -94,6 +98,8 @@ public class CryptoTest {
 		return null;
 	}
 	public CryptoTest() {
+		Security.addProvider(new BouncyCastleProvider());
+		
 		SecretKey supa = generateAESkey(128);
 		KeyPair kp = generateRSAkey(2048);
 		KeyPair kp2 = generateRSAkey(2048);
@@ -103,6 +109,9 @@ public class CryptoTest {
 		System.out.println(bytesToHex(enc));
 		System.out.println(bytesToHex(dec));
 		System.out.println(Arrays.equals(dec, content));
+		
+		
+		System.out.println(BouncyCastleProvider.PROVIDER_NAME);
 	}
 
 	public static String bytesToHex(byte[] bytes) {
