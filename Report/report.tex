@@ -36,9 +36,8 @@ The application are built for Android 4.2.2 with the android sdk 17. It consists
 \label{sec:auth}
 To authenticate the users the server sends a randomly generated challenge the user signs with its private key. This first message is the only message sent in cleartext, the rest is encrypted. Along with the authentication challenge the server supplies its public key, the clients compares it with its stored key, if the clients has no key it accepts and stores the supplied key. The signed challenge from the server is sent back with the clients desired username and public key. The server first checks if it has a public key that corresponds to he username supplied by the  If a key is found, the server uses the stored key to verify the signed challenge. If no key is found, the supplied key is used and stored for further use.
 
-After both server and client have been authenticated the client sends a request to connect to another user, if the requested user is log`ged in the server supplies the corresponding public key and establishes a connection.A message sequence chart for the authentication protocol can bee seen in Figure \ref{fig:auth}. All packets are still pass through the server but the content is encrypted with the client's private keys so the server is not able to decrypt it.
+After both server and client have been authenticated the client sends a request to connect to another user, if the requested user is logged in the server supplies the corresponding public key and establishes a connection.A message sequence chart for the authentication protocol can bee seen in Figure \ref{fig:auth}. All packets are still pass through the server but the content is encrypted with the client's private keys so the server is not able to decrypt it.
 
- 
 
 \begin{figure}
 \label{fig:auth}
@@ -47,6 +46,10 @@ After both server and client have been authenticated the client sends a request 
 \caption{Authentication process}
 \end{figure}
 
+ \section{Crypto}
+When a messages passes through the server the to and from fields gets decrypted and the server uses them to know were to forward the packet. Before the packages is forwarded the to and from fields are encrypted with the receiving clients public key.
+
+ Because public key cryptography is an expensive operation we generate a symmetric key for every message that is used to encrypt the message text. The symmetric key is then encrypted with the receiving clients public key. 
 
 \section{Problems}
 \label{sec:problems}
@@ -55,14 +58,15 @@ After both server and client have been authenticated the client sends a request 
 \section {Conclusion}
 \label{sec:conclusion}
 
-\section{Future wor
-\label{sec:future}
 
-\section {Improvements}
+
+\section {Improvements and future work}
 \label{sec:improve}
 Currently a message going from one client to another needs 4 public key operations and 
 
 Even if the clients use public key cryptography the server still has to be trusted to deliver the correct keys and not replacing them with its own. This could be improved by transferring the keys directly from one client to another but this brings up a lot of challenges with devices behind firewalls. However since both the server and client and server are open source you could easily run your own server to provide the needed server trust.
+
+Adding a seed when encrypting the to and from fields should also be added to avoid a eavesdropper from gaining information about how many users are contacted and how often. 
 
 %\bibliographystyle{IEEEbib}
 %\bibliography{my}
