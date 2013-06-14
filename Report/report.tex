@@ -18,24 +18,25 @@
 \maketitle
 
 \begin{abstract}
-With the recent scandals in government mass surveillance the need for a secure way to communicate becomes clear for anyone that wants to keep their communication private. 
-\end{abstract}
+With the recent scandals in government mass surveillance the need for a secure way to communicate becomes clear for anyone that wants to keep their communication private. With this application we aim to use private-public
+ keys cryptography to secure the communication between android users. \end{abstract}
 
 \section {Introduction}
 \label{sec:introduction}
-In this paper we are going to cover our design for a secure chat client that uses a combination of symmetric AES encryption and RSA public key encryption. Software design choices will be covered inn section \ref{sec:design}, the authentication protocol in section \ref{sec:auth} and possible improvements in section \ref{sec:improve}.
-
+In this paper we are going to cover our design for a secure chat client that uses a combination of symmetric AES encryption and RSA public key encryption. Software design choices will be covered inn section \ref{sec:design}, the authentication protocol in section \ref{sec:auth} and possible improvements in section \ref{sec:improve}. 
 \section {Software Design}
 \label{sec:design}
+This application has a server-client architecture, where the android-devices are clients and needs a server to run. All messages goes through the server. If the server receives a message that is for another user it redirects it to the right reciever.
+
+The application are built for Android 4.2.2 with the android sdk 17. It consists of one Activity that uses fragments to display the different screens, and running different Threads and Asynctasks for servercommunication. It opens into a login screen where the user is prompt for username. If a private RSA-key does not exist locally for the user it is creates a Key Pair. The authentification process is more discussed in section \ref{sec:auth}. When a user want to connect to another user, it askes the server if that person is available. If it is the application opens a chat view and makes it possible for the user write a message. The message is being encrypted at the client and sent to the server, which redirects it to the user you want to contact. When you receive a messsage it is decrypted with your private key and is viewed on the screen.
+
 
 
 \section{Authentication Protocol}
 \label{sec:auth}
-To authenticate the users the server sends a randomly generated challenge the user signs with its private key. This first message is the only message sent in cleartext, the rest is encrypted. Along with the authentication challenge the server supplies its public key, the clients compares it with its stored key, if the clients has no key it accepts and stores the supplied key. The signed challenge from the server is sent back with the clients desired username and public key. The server first checks if it has a public key that corresponds to he username supplied by the client. If a key is found, the server uses the stored key to verify the signed challenge. If no key is found, the supplied key is used and stored for further use. 
+To authenticate the users the server sends a randomly generated challenge the user signs with its private key. This first message is the only message sent in cleartext, the rest is encrypted. Along with the authentication challenge the server supplies its public key, the clients compares it with its stored key, if the clients has no key it accepts and stores the supplied key. The signed challenge from the server is sent back with the clients desired username and public key. The server first checks if it has a public key that corresponds to he username supplied by the  If a key is found, the server uses the stored key to verify the signed challenge. If no key is found, the supplied key is used and stored for further use.
 
-After both server and client have been authenticated the client sends a request to connect to another user, if the requested user is logged in the server supplies the corresponding public key and establishes a connection. A message sequence chart for the authentication protocol can bee seen in Figure \ref{fig:auth}. All packets are still pass through the server but the content is encrypted with the client's private keys so the server is not able to decrypt it.
-
-
+After both server and client have been authenticated the client sends a request to connect to another user, if the requested user is log`ged in the server supplies the corresponding public key and establishes a connection.A message sequence chart for the authentication protocol can bee seen in Figure \ref{fig:auth}. All packets are still pass through the server but the content is encrypted with the client's private keys so the server is not able to decrypt it.
 
  
 
@@ -47,9 +48,15 @@ After both server and client have been authenticated the client sends a request 
 \end{figure}
 
 
+\section{Problems}
+\label{sec:problems}
+
 
 \section {Conclusion}
 \label{sec:conclusion}
+
+\section{Future wor
+\label{sec:future}
 
 \section {Improvements}
 \label{sec:improve}
