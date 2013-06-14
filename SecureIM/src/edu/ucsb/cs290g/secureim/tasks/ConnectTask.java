@@ -77,14 +77,15 @@ public class ConnectTask extends AsyncTask<User, Void, Boolean> implements Messa
 
     @Override
     public void onNewMessage(Message message) {
-        if (message.getMessageCode() == StatusCode.AUTH_OK) {
+        if (message.getStatusCode() == StatusCode.AUTH_OK) {
             authenticated = true;
             mh.removeObserver(this);
+            Log.wtf(TAG, "Trying to get encrypted message");
             Log.wtf(TAG, "The decrypted message is: " + message.getDecryptedMessage(user.getPrivateKey()));
-        } else if (message.getMessageCode() == StatusCode.UNAUTHORIZED) {
+        } else if (message.getStatusCode() == StatusCode.UNAUTHORIZED) {
             denied = true;
             mh.removeObserver(this);
-        } else if (message.getMessageCode() == StatusCode.KEY_NOT_FOUND) {
+        } else if (message.getStatusCode() == StatusCode.KEY_NOT_FOUND) {
         	Log.i(TAG, "Sending Key");
          }
 

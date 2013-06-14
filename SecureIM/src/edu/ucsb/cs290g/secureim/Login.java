@@ -43,13 +43,13 @@ public class Login extends Fragment implements View.OnClickListener{
     public void onClick(View v) {
         if (v == loginButton) {
             Log.i(TAG, usernameField.getText().toString());
-            me = usernameField.getText().toString().trim().toLowerCase();
+            me = usernameField.getText().toString().trim();
 
 
             InputMethodManager inputMethodManager = (InputMethodManager)  getActivity().getSystemService(Activity.INPUT_METHOD_SERVICE);
             inputMethodManager.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), InputMethodManager.RESULT_HIDDEN);
 
-            ConnectionHandler.getConnectionHandler(getActivity()).connect(usernameField.getText().toString());
+            ConnectionHandler.getConnectionHandler(getActivity()).connect(me);
         }
 
     }

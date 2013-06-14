@@ -15,9 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import edu.ucsb.cs290g.secureim.crypto.KeyReader;
 import edu.ucsb.cs290g.secureim.interfaces.MessageObserver;
 import edu.ucsb.cs290g.secureim.models.Conversation;
 import edu.ucsb.cs290g.secureim.models.Message;
+import edu.ucsb.cs290g.secureim.models.MessageFactory;
 import edu.ucsb.cs290g.secureim.models.User;
 import edu.ucsb.cs290g.secureim.tasks.ConnectTask;
 import edu.ucsb.cs290g.secureim.tasks.MessageHandler;
@@ -40,6 +42,7 @@ public class ConnectionHandler  {
     private Context ctx;
     private boolean listening = false;
 
+    MessageFactory messagefactory;
     MessageHandler messageHandler;
 
     private ConnectionHandler(Context ctx) {
@@ -51,7 +54,7 @@ public class ConnectionHandler  {
         if (connectionHandler == null ) {
             connectionHandler = new ConnectionHandler(ctx);
         }
-        if (ctx != null)
+        if (connectionHandler.ctx == null)
         	connectionHandler.setContext(ctx);
         return connectionHandler;
     }
@@ -92,13 +95,33 @@ public class ConnectionHandler  {
 
             StartConversationTask ct = new StartConversationTask(this.ctx, messageHandler);
 
-            Message message = new Message(me.getUsername(), "server", user);
+            MessageFactory mf = new MessageFactory(me, ctx);
+            
+            Message message = mf.createMessage(user, 0);
 
             try {
-                if (ct.execute(message).get()) {
+            	
+            	PublicKey pkFromFile = KeyReader.readPublicKeyFromFile(user, ctx);
+            	PublicKey pkFromServer = ct.execute(message).get();
+            	
+            	if(pkFromServer == null) {
+            		Log.wtf(TAG, "NO KEY FROM SERVER");
+            		return false;
+            	}
+            	
+            	if (pkFromFile == null && pkFromServer != null){
+            		KeyReader.savePublicKey(pkFromServer, user);
+            		System.out.println("Added public key for " + user);
+            		pkFromFile = pkFromServer;
+            	}
+            	if (!pkFromFile.equals(pkFromServer)) {
+            		System.out.println("Provided public key does not match own key");
+            		return false;
+            	}else {
                     Log.d(TAG, "Starting a conversation with " + user);
                     Conversation conversation = Conversation.startConversation(me.getUsername(), user, conversations);
                     Log.i(TAG, "Conversation between " + me + " and " + user + " started");
+                    messagefactory = new MessageFactory(me, user, pkFromServer, ctx);
                     return true;
                 }
             } catch (InterruptedException e) {
@@ -115,11 +138,10 @@ public class ConnectionHandler  {
         return false;
     }
 
-    public void sendMessage(Message message) {
+    public void sendMessage(String message) {
         if (isConnected && messageHandler != null) {
-            messageHandler.sendMessage(message);
+            messageHandler.sendMessage(messagefactory.createMessage(message, 0));
         } else {
-
             connect(me.getUsername());
         }
     }
@@ -155,4 +177,8 @@ public class ConnectionHandler  {
         transaction.commit();
 
     }
+
+	public User getUser() {
+		return me;
+	}
 }

@@ -14,7 +14,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class CryptoTest {
 
@@ -51,7 +50,11 @@ public class CryptoTest {
 
 	public static byte[] encryptWithRSA(byte[] intput, PublicKey pubkey){
 		try {
+<<<<<<< HEAD
+			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding", "BC");
+=======
 			Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding" , "BC");
+>>>>>>> cd0bb64a03438db601e325cfec7bf3351e9a95c4
 			cipher.init(Cipher.ENCRYPT_MODE, pubkey);
 			byte[] encMsg = cipher.doFinal(intput);
 			return encMsg;
@@ -95,7 +98,7 @@ public class CryptoTest {
 		return null;
 	}
 	public CryptoTest() {
-		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		Security.addProvider(new BouncyCastleProvider());
 		
 		SecretKey supa = generateAESkey(128);
 		KeyPair kp = generateRSAkey(2048);
